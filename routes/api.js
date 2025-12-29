@@ -1,0 +1,16 @@
+require('module-alias/register');
+const express = require('express');
+const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const validators = require('@validators/ApiValidator');
+const { Logout,register,profileDetails,login,editProfile,changePassword,deleteAccount } = require('@controllers/authController');
+const authMiddleware = require('@middleware/authMiddleware');
+router.post('/auth/register', register);
+router.post('/auth/login', login);
+router.post('/auth/logout', authMiddleware, Logout);
+router.get('/auth/profileDetails', authMiddleware, profileDetails);
+router.post('/auth/changePassword', authMiddleware, changePassword);
+router.post('/auth/deleteAccount', authMiddleware, deleteAccount);
+router.post('/auth/editProfile', authMiddleware, editProfile);
+module.exports = router;
