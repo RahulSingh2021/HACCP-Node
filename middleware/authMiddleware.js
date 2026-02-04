@@ -1,35 +1,61 @@
 const jwt = require("jsonwebtoken");
-const User = require("@models/User"); // Import your user model
+const User = require("@models/User");
+
+// ⚠️ If you don't really use blacklist table, comment it
+// const BlacklistedToken = require("@models/BlacklistedToken");
 
 const authMiddleware = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized: No token provided" });
-  }
-
-  const token = authHeader.split(" ")[1];
-
   try {
-    // Check if the token is blacklisted
-    const isBlacklisted = await BlacklistedToken.findOne({ where: { token } });
-    if (isBlacklisted) {
-      return res.status(401).json({ message: "Unauthorized: Token is blacklisted" });
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({
+        status: false,
+        message: "Authorization header missing",
+      });
     }
 
-    // Verify JWT
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        status: false,
+        message: "Invalid authorization format. Use Bearer TOKEN",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({
+        status: false,
+        message: "Token not provided",
+      });
+    }
+
+    /* ================= VERIFY TOKEN ================= */
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check if the user still exists
+    /* ================= USER CHECK ================= */
+
     const existingUser = await User.findByPk(decoded.id);
+
     if (!existingUser) {
-      return res.status(401).json({ message: "Unauthorized: User no longer exists" });
+      return res.status(401).json({
+        status: false,
+        message: "User no longer exists",
+      });
     }
 
     req.user = decoded;
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+
+  } catch (error) {
+    console.error("JWT ERROR:", error.message);
+
+    return res.status(401).json({
+      status: false,
+      message: "Unauthorized: Invalid or expired token",
+    });
   }
 };
 

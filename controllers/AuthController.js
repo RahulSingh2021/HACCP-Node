@@ -50,7 +50,7 @@ exports.Logout = async (req, res) => {
   }
 };
 
-exports.register = async (req, res) => {
+exports.AddUser = async (req, res) => {
   try {
     // ✅ Step 1: Handle file upload (multer) as a promise
     await new Promise((resolve, reject) => {
@@ -145,14 +145,9 @@ exports.register = async (req, res) => {
         return res.status(400).json({ status: false, message: 'Invalid date of birth.' });
       }
     }
-
-    // ✅ Step 6: Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     const user_role_id = user_type ? user_type : 1;
-
-    // ✅ Step 7: Profile picture path (if uploaded)
     const avatar = req.files?.avatar ? `/uploads/users/${req.files.avatar[0].filename}` : null;
-
     // ✅ Step 8: Create user
     const newUser = await User.create({
       clinic_name,
@@ -196,45 +191,9 @@ const token = jwt.sign(
   { id: newUser.id, role: user_role_id },
   process.env.JWT_SECRET
 );
-
-    // ✅ Step 11: Send Welcome Email
-try {
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM,
-    to: email,
-    subject: '🎉 Welcome to Our Platform!',
-    html: `
-      <div style="font-family: 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 30px; background-color: #ffffff;">
-        <div style="text-align: center;">
-          <img src="https://servicecue.com.au/web/assets/img/logo.png" alt="Logo" style="max-height: 60px; margin-bottom: 20px;">
-        </div>
-        <h2 style="color: #2D89EF; text-align: center;">Welcome to Service Cue! 🎉</h2>
-        <p style="font-size: 16px; color: #333;">
-          Hi <strong>${full_name || "there"}</strong>,
-        </p>
-        <p style="font-size: 16px; color: #333;">
-          We're thrilled to have you join our platform! You're now part of a growing community of awesome people 🚀
-        </p>
-        <p style="font-size: 16px; color: #333;">
-          If you have any questions, feel free to reply to this email. We’re here to help!
-        </p>
-        <p style="font-size: 16px; color: #333;">
-    Warm regards,<br/>
-    <strong>Shamara Jarrett</strong><br/>
-    Founder | <strong>Service Cue™</strong>
-  </p>
-      </div>
-    `,
-  });
-
-  //console.log("✅ Welcome email sent to", email);
-} catch (mailErr) {
-  console.error("❌ Welcome email error:", mailErr.message);
-}
-
     return res.status(201).json({
       status: true,
-      message: 'User registered successfully.',
+      message: 'User Add successfully.',
       user: userDetails,
       token,
     });
@@ -361,37 +320,12 @@ exports.profileDetails = async (req, res) => {
 
     const userDetails = await getUserDetails(userId);
 
-    // Fetch ACTIVE OR COMPLETE subscription with plan details
-    const activeSubscription = await Subscription.findOne({
-      where: {
-        user_id: userId,
-        stripe_status: ["active", "complete"],
-      },
-      include: [
-        {
-          model: SubscriptionPlans,
-          as: "planDetails",
-          attributes: [
-            "id",
-            "title",
-            "stripe_product_id",
-            "stripe_price_id",
-            "amount",
-            "currency",
-            "interval",
-            "post_limit",
-            "content",
-            "image"
-          ]
-        }
-      ]
-    });
+
 
     return res.status(200).json({
       status: true,
       message: "Details Found",
       user: { userId, ...userDetails },
-      activeSubscription: activeSubscription,
     });
 
   } catch (err) {
@@ -611,3 +545,103 @@ exports.deleteAccount = async (req, res) => {
   }
 };
 
+exports.corporates = async (req, res) => {
+  try {
+    // Fetch all corporates (is_role = 2)
+    const corporates = await User.findAll({
+      where: { is_role: 2 }
+    });
+
+    return res.status(200).json({
+      status: true,
+      count: corporates.length,
+      data: corporates,
+      message: "Corporate users fetched successfully."
+    });
+
+  } catch (err) {
+    console.error("Fetch Corporates Error:", err);
+    return res.status(500).json({
+      status: false,
+      message: process.env.NODE_ENV !== "production" ? err.message : "Internal server error.",
+    });
+  }
+};
+
+
+exports.getRegionals = async (req, res) => {
+  try {
+    const { corporate_id } = req.params;
+
+    if (!corporate_id) {
+      return res.status(400).json({
+        status: false,
+        message: "Corporate ID is required."
+      });
+    }
+
+    // Fetch regionals (is_role = 1) created by corporate
+    const regionals = await User.findAll({
+      where: {
+        created_by: corporate_id,
+        is_role: 1
+      }
+    });
+
+    return res.status(200).json({
+      status: true,
+      count: regionals.length,
+      data: regionals,
+      message: "Regionals fetched successfully."
+    });
+
+  } catch (err) {
+    console.error("Fetch Regionals Error:", err);
+    return res.status(500).json({
+      status: false,
+      message:
+        process.env.NODE_ENV !== "production"
+          ? err.message
+          : "Internal server error."
+    });
+  }
+};
+
+
+exports.getUnits = async (req, res) => {
+  try {
+    const { regional_id } = req.params;
+
+    if (!regional_id) {
+      return res.status(400).json({
+        status: false,
+        message: "Regional ID is required."
+      });
+    }
+
+    // Fetch units (is_role = 3) created by regional
+    const units = await User.findAll({
+      where: {
+        created_by1: regional_id,
+        is_role: 3
+      }
+    });
+
+    return res.status(200).json({
+      status: true,
+      count: units.length,
+      data: units,
+      message: "Units fetched successfully."
+    });
+
+  } catch (err) {
+    console.error("Fetch Units Error:", err);
+    return res.status(500).json({
+      status: false,
+      message:
+        process.env.NODE_ENV !== "production"
+          ? err.message
+          : "Internal server error."
+    });
+  }
+};

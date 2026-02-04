@@ -22,6 +22,11 @@ async function syncModelsInOrder() {
   try {
     await dbSync.User.sync({ force: false });
     await dbSync.Inspection.sync({ force: false });
+    await dbSync.InspectionStatus.sync({ force: false });
+    await dbSync.Department.sync({ force: false });
+    await dbSync.Role.sync({ force: false });
+    await dbSync.Topic.sync({ force: false });
+    await dbSync.Inspectionfollow.sync({ force: false });
 
 
   } catch (error) {

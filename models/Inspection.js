@@ -1,91 +1,163 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('@config/config');
+const { DataTypes } = require("sequelize");
+const sequelize = require("@config/config");
 
 const Inspection = sequelize.define(
-  'Inspection',
+  "Inspection",
   {
-    client_id: {
+    id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    clinic_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    created_by: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    price: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    concerns: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    additional_notes: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      field: "additional_notes",
+      autoIncrement: true,
+      primaryKey: true,
     },
 
-    front: {
+    title: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    unit_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    image: {
       type: DataTypes.STRING,
       allowNull: true,
-      get() {
-        const rawValue = this.getDataValue("front");
-        if (!rawValue) {
-          return ``; // default image
-        }
-        return `${process.env.BASE_PATH}${rawValue}`;
-      },
     },
-    left: {
+
+    image1: {
       type: DataTypes.STRING,
       allowNull: true,
-      get() {
-        const rawValue = this.getDataValue("left");
-        if (!rawValue) {
-          return ``;
-        }
-        return `${process.env.APP_URL}${rawValue}`;
-      },
     },
-    right: {
+
+    type1: {
       type: DataTypes.STRING,
       allowNull: true,
-      get() {
-        const rawValue = this.getDataValue("right");
-        if (!rawValue) {
-          return ``;
-        }
-        return `${process.env.APP_URL}${rawValue}`;
-      },
     },
-    status: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    completed_at: {
-      type: DataTypes.DATE,
+
+    type2: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
-    deleted_at: {
-      type: DataTypes.DATE,
+
+    responsibility: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    location: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    sublocation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    concern: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    subconcern: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    comments: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    closure_comments: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: "closureComments",
+    },
+
+    time_line: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    select_action: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "Open",
+    },
+
+    sops: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    price: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    updated_by: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    image_thumb1: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    image_thumb2: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    corporate: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    regional: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    starred: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+
+    breakdownStatus: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    people: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    equipment: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    food: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },
   {
-    tableName: 'inspection',
+    tableName: "inspection",
     timestamps: true,
-    underscored: true,
-    paranoid: true,
-    deletedAt: 'deleted_at',
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
-
-
-
 
 module.exports = Inspection;
